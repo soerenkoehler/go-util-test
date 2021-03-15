@@ -1,3 +1,3 @@
-module github.com/soerenkoehler/gomock
+module github.com/soerenkoehler/go-testutil
 
 go 1.16
