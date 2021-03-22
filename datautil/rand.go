@@ -24,20 +24,37 @@ func (rng *XorShift64Mul) UInt64() uint64 {
 	return x * 0x2545F4914F6CDD1D
 }
 
-type RandomByteStream struct {
+type ByteStream interface {
+	Byte() byte
+}
+
+type Rng64ByteStream struct {
 	source Rng64
 	buffer uint64
-	count  int32
+	count  uint32
 }
 
-func NewRandomByteStream(source Rng64) *RandomByteStream {
-	return &RandomByteStream{
+func NewRng64ByteStream(source Rng64) *Rng64ByteStream {
+	return &Rng64ByteStream{
 		source: source,
-		buffer: source.UInt64(),
-		count:  8}
+		buffer: 0,
+		count:  0}
 }
 
-func (rng *RandomByteStream) Read(p []byte) (n int, err error) {
-	p = p[0:0]
+func (bs *Rng64ByteStream) Byte() byte {
+	if bs.count == 0 {
+		bs.buffer = bs.source.UInt64()
+		bs.count = 8
+	}
+	result := byte(bs.buffer)
+	bs.buffer >>= 8
+	bs.count--
+	return result
+}
+
+func (rng *Rng64ByteStream) Read(p []byte) (n int, err error) {
+	for i := range p {
+		p[i] = rng.Byte()
+	}
 	return len(p), nil
 }
