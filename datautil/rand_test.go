@@ -1,17 +1,22 @@
 package datautil_test
 
 import (
-	"io"
-	"os"
+	"path"
 	"testing"
 
 	"github.com/soerenkoehler/go-testutil/datautil"
+	"github.com/soerenkoehler/go-testutil/testutil"
 )
 
+func TestXorShiftPanicsWithZeroSeed(t *testing.T) {
+	testutil.ShouldPanic(t, func() {
+		datautil.NewXorShift64Mul(0)
+	})
+}
+
 func TestByteSTream(t *testing.T) {
-	in := datautil.NewRng64ByteStream(datautil.NewXorShift64Mul(1))
-	if out, err := os.Create("output.random.bin"); err == nil {
-		defer out.Close()
-		io.CopyN(out, in, 0x10000)
-	}
+	datautil.CreateRandomFile(
+		path.Join(t.TempDir(), "output.random.bin"),
+		0x10000,
+		1)
 }

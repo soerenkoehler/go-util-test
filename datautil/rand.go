@@ -1,5 +1,10 @@
 package datautil
 
+import (
+	"io"
+	"os"
+)
+
 type Rng64 interface {
 	UInt64() uint64
 }
@@ -52,9 +57,18 @@ func (bs *Rng64ByteStream) Byte() byte {
 	return result
 }
 
-func (rng *Rng64ByteStream) Read(p []byte) (n int, err error) {
+func (bs *Rng64ByteStream) Read(p []byte) (n int, err error) {
 	for i := range p {
-		p[i] = rng.Byte()
+		p[i] = bs.Byte()
 	}
 	return len(p), nil
+}
+
+// CreateRandomFile ... TODO
+func CreateRandomFile(path string, size int64, seed uint64) {
+	in := NewRng64ByteStream(NewXorShift64Mul(seed))
+	if out, err := os.Create(path); err == nil {
+		defer out.Close()
+		io.CopyN(out, in, size)
+	}
 }
