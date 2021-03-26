@@ -1,4 +1,4 @@
-module github.com/soerenkoehler/go-testutil
+module github.com/soerenkoehler/go-testutils
 
 go 1.16
 

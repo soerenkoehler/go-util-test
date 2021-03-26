@@ -8,8 +8,8 @@ import (
 	"path"
 	"testing"
 
-	"github.com/soerenkoehler/go-testutil/datautil"
-	"github.com/soerenkoehler/go-testutil/testutil"
+	"github.com/soerenkoehler/go-testutils/datautil"
+	"github.com/soerenkoehler/go-testutils/testutil"
 	"gonum.org/v1/gonum/stat"
 	"gonum.org/v1/gonum/stat/distuv"
 )
