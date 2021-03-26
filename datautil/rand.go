@@ -9,18 +9,25 @@ type Rng64 interface {
 	UInt64() uint64
 }
 
-type XorShift64Mul struct {
+type xorShift64Mul struct {
 	a uint64
 }
 
 func NewXorShift64Mul(seed uint64) Rng64 {
+	// validate seed
 	if seed == 0 {
 		panic("seed must not be 0")
 	}
-	return &XorShift64Mul{a: seed}
+	// create RNG
+	rng := &xorShift64Mul{a: seed}
+	// skip first few results
+	for i := 13; i > 0; i-- {
+		rng.UInt64()
+	}
+	return rng
 }
 
-func (rng *XorShift64Mul) UInt64() uint64 {
+func (rng *xorShift64Mul) UInt64() uint64 {
 	x := rng.a
 	x ^= x >> 12
 	x ^= x << 25
