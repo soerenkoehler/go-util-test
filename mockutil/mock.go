@@ -8,7 +8,7 @@ type Call []interface{}
 
 // Registry collects a series of mocked calls.
 type Registry struct {
-	t     *testing.T
+	T     *testing.T
 	calls []Call
 }
 
@@ -24,7 +24,7 @@ func Verify(registry *Registry, expectedCall Call) {
 	registry.calls = registry.calls[1:]
 
 	if !verifyCall(registeredCall, expectedCall) {
-		registry.t.Errorf(
+		registry.T.Errorf(
 			"\nexpected call:\n> %s\nregistered call:\n> %s",
 			expectedCall,
 			registeredCall)
