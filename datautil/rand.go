@@ -77,5 +77,7 @@ func CreateRandomFile(path string, size int64, seed uint64) {
 	if out, err := os.Create(path); err == nil {
 		defer out.Close()
 		io.CopyN(out, in, size)
+	} else {
+		panic(err)
 	}
 }
