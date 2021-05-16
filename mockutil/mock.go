@@ -8,6 +8,7 @@ type Call []interface{}
 
 // Registry collects a series of mocked calls.
 type Registry struct {
+	T     *testing.T
 	calls []Call
 }
 
@@ -18,12 +19,12 @@ func Register(registry *Registry, call Call) {
 
 // Verify checks if 'expectedCall' is registered at the first position of
 // the call array.
-func Verify(t *testing.T, registry *Registry, expectedCall Call) {
+func Verify(registry *Registry, expectedCall Call) {
 	registeredCall := registry.calls[0]
 	registry.calls = registry.calls[1:]
 
 	if !verifyCall(registeredCall, expectedCall) {
-		t.Errorf(
+		registry.T.Errorf(
 			"\nexpected call:\n> %s\nregistered call:\n> %s",
 			expectedCall,
 			registeredCall)

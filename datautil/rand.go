@@ -3,6 +3,7 @@ package datautil
 import (
 	"io"
 	"os"
+	"path"
 )
 
 type Rng64 interface {
@@ -71,11 +72,18 @@ func (bs *Rng64ByteStream) Read(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-// CreateRandomFile ... TODO
-func CreateRandomFile(path string, size int64, seed uint64) {
-	in := NewRng64ByteStream(NewXorShift64Mul(seed))
-	if out, err := os.Create(path); err == nil {
-		defer out.Close()
-		io.CopyN(out, in, size)
+func CreateRandomFile(pathh string, size int64, seed uint64) {
+	err := os.MkdirAll(path.Dir(pathh), 0700)
+	if err != nil {
+		panic(err)
 	}
+
+	out, err := os.Create(pathh)
+	if err != nil {
+		panic(err)
+	}
+
+	defer out.Close()
+
+	io.CopyN(out, NewRng64ByteStream(NewXorShift64Mul(seed)), size)
 }
