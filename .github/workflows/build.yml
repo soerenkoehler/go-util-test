@@ -1,4 +1,4 @@
-name: Build And Release Tool
+name: Build
 
 on:
   push
