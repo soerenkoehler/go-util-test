@@ -1,17 +1,13 @@
 package datautil_test
 
 import (
-	"fmt"
 	"io"
-	"math"
 	"os"
 	"path"
 	"testing"
 
 	"github.com/soerenkoehler/go-testutils/datautil"
 	"github.com/soerenkoehler/go-testutils/testutil"
-	"gonum.org/v1/gonum/stat"
-	"gonum.org/v1/gonum/stat/distuv"
 )
 
 func TestXorShiftPanicsWithZeroSeed(t *testing.T) {
@@ -30,51 +26,51 @@ func TestSameSeedYieldsSameSequence(t *testing.T) {
 	}
 }
 
-func TestByteDistribution(t *testing.T) {
-	seed := uint64(0xffff_ffff_ffff_ffff)
-	sampleSize := 0x1_0000_0000
-	outcomeNumber := 0x100
+// func TestByteDistribution(t *testing.T) {
+// 	seed := uint64(0xffff_ffff_ffff_ffff)
+// 	sampleSize := 0x1_0000_0000
+// 	outcomeNumber := 0x100
 
-	// init expectaion and observation arrays
-	exp := make([]float64, outcomeNumber)
-	obs := make([]float64, outcomeNumber)
-	for i := 0; i < 256; i++ {
-		exp[i] = float64(sampleSize / outcomeNumber)
-		obs[i] = 0
-	}
+// 	// init expectaion and observation arrays
+// 	exp := make([]float64, outcomeNumber)
+// 	obs := make([]float64, outcomeNumber)
+// 	for i := 0; i < 256; i++ {
+// 		exp[i] = float64(sampleSize / outcomeNumber)
+// 		obs[i] = 0
+// 	}
 
-	// create observations
-	src := datautil.NewRng64ByteStream(datautil.NewXorShift64Mul(seed))
-	for i := 0; i < sampleSize; i++ {
-		b := src.Byte()
-		obs[b]++
-	}
+// 	// create observations
+// 	src := datautil.NewRng64ByteStream(datautil.NewXorShift64Mul(seed))
+// 	for i := 0; i < sampleSize; i++ {
+// 		b := src.Byte()
+// 		obs[b]++
+// 	}
 
-	// calculate chi square probability
-	sum := stat.ChiSquare(obs, exp)
-	prob := distuv.ChiSquared{K: float64(outcomeNumber - 1)}.Survival(sum)
-	probLimit := 0.9 // may not work with other seed values
-	fmt.Printf(
-		"Chi Square Sum = %g Probability=%g (limit=%g)\n",
-		sum, prob, probLimit)
+// 	// calculate chi square probability
+// 	sum := stat.ChiSquare(obs, exp)
+// 	prob := distuv.ChiSquared{K: float64(outcomeNumber - 1)}.Survival(sum)
+// 	probLimit := 0.9 // may not work with other seed values
+// 	fmt.Printf(
+// 		"Chi Square Sum = %g Probability=%g (limit=%g)\n",
+// 		sum, prob, probLimit)
 
-	if prob < probLimit {
-		t.Errorf("confidence below expected limit")
-	}
+// 	if prob < probLimit {
+// 		t.Errorf("confidence below expected limit")
+// 	}
 
-	// normalize observations for entropy calculation
-	for i := range obs {
-		obs[i] /= float64(sampleSize)
-	}
+// 	// normalize observations for entropy calculation
+// 	for i := range obs {
+// 		obs[i] /= float64(sampleSize)
+// 	}
 
-	ent := stat.Entropy(obs) / math.Log(2) // convert to bits
-	entLimit := 7.99999
-	fmt.Printf("Entropy = %g bits (limit=%g)\n", ent, entLimit)
+// 	ent := stat.Entropy(obs) / math.Log(2) // convert to bits
+// 	entLimit := 7.99999
+// 	fmt.Printf("Entropy = %g bits (limit=%g)\n", ent, entLimit)
 
-	if ent < entLimit {
-		t.Errorf("entropy below expected limit")
-	}
-}
+// 	if ent < entLimit {
+// 		t.Errorf("entropy below expected limit")
+// 	}
+// }
 
 func TestRandomDataFile(t *testing.T) {
 	seed := uint64(0xffff_ffff_ffff_ffff)
@@ -101,7 +97,7 @@ func TestRandomDataFile(t *testing.T) {
 	cmp := datautil.NewRng64ByteStream(datautil.NewXorShift64Mul(seed))
 	for i := range buf {
 		if buf[i] != cmp.Byte() {
-			t.Fatalf("file differs an position %d", i)
+			t.Fatalf("file differs on position %d", i)
 		}
 	}
 }
