@@ -26,6 +26,41 @@ func TestSameSeedYieldsSameSequence(t *testing.T) {
 	}
 }
 
+type bitCounter struct {
+	last   int
+	single [2]uint64
+	pair   [4]uint64
+}
+
+func (counter *bitCounter) countBit(bit uint64) {
+	current := 0
+	if bit != 0 {
+		current++
+	}
+	counter.single[current]++
+	counter.pair[counter.last+counter.last+current]++
+	counter.last = current
+}
+
+func (counter *bitCounter) getEntropy() (single, pair float64) {
+	all := float64(counter.single[0]) + float64(counter.single[1])
+	return 0, 0
+}
+
+func calculateEntropy(source datautil.Rng64, count uint64) {
+	allBits := bitCounter{}
+	subBits := [64]bitCounter{}
+	for i := uint64(0); i < count; i++ {
+		data := source.UInt64()
+		mask := uint64(0x8000_0000_0000_0000)
+		for j := 0; j < 64; j++ {
+			bit := data & mask
+			allBits.countBit(bit)
+			subBits[j].countBit(bit)
+		}
+	}
+}
+
 // func TestByteDistribution(t *testing.T) {
 // 	seed := uint64(0xffff_ffff_ffff_ffff)
 // 	sampleSize := 0x1_0000_0000
