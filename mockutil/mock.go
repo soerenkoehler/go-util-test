@@ -87,3 +87,11 @@ func verifyCall(registeredCall Call, name string, args ...ArgumentCheck) error {
 
 	return nil
 }
+
+func (registry *Registry) NoMoreCalls() *Registry {
+	if remainingCalls := len(registry.calls); remainingCalls != 0 {
+		registry.T.Errorf("registered %v unexpected calls", remainingCalls)
+	}
+
+	return registry
+}
