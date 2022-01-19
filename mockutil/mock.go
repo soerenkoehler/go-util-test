@@ -2,96 +2,139 @@ package mockutil
 
 import (
 	"fmt"
+	"io"
 	"reflect"
+	"strings"
 	"testing"
 )
 
-// Call is an array of type interface{} which describes a single mocked
-// function call.
-type Call []interface{}
+type mockInvocation []interface{}
 
-type ArgumentCheck func(interface{}) error
-
-// Registry collects a series of mocked calls.
-type Registry struct {
-	T     *testing.T // TODO how?
-	calls []Call
+type mockWriter struct {
+	writeMethod func(p []byte) (int, error)
 }
 
-// Register adds a MockCall to the array of registered calls.
-func (registry *Registry) Register(call ...interface{}) {
-	registry.calls = append(registry.calls, call)
+func (m mockWriter) Write(p []byte) (int, error) {
+	return m.writeMethod(p)
 }
 
-func Any() ArgumentCheck {
+type argumentCheck func(interface{}) error
+
+func createArgumentCheck(
+	name string,
+	expected interface{},
+	transform func(interface{}) interface{}) argumentCheck {
 	return func(actual interface{}) error {
-		return nil
-	}
-}
-
-func Is(expected interface{}) ArgumentCheck {
-	return func(actual interface{}) error {
-		if expected == actual {
+		if transform(expected) == transform(actual) {
 			return nil
 		} else {
 			return fmt.Errorf(
-				"expected value %v but got %v",
+				"%s: expected = %v actual = %v",
+				name,
 				expected,
 				actual)
 		}
 	}
 }
 
-func SameType(expected interface{}) ArgumentCheck {
-	return func(actual interface{}) error {
-		expectedType := reflect.TypeOf(expected)
-		actualType := reflect.TypeOf(actual)
-		if expectedType == actualType {
+func Any() argumentCheck {
+	return createArgumentCheck(
+		"Any",
+		nil,
+		func(v interface{}) interface{} {
 			return nil
-		} else {
-			return fmt.Errorf(
-				"expected type %v but got %v",
-				expectedType,
-				actualType)
-		}
-	}
+		})
 }
 
-// Verify checks if 'expectedCall' is registered at the first position of
-// the call array.
-func (registry *Registry) Verify(name string, args ...ArgumentCheck) *Registry {
-	registeredCall := registry.calls[0]
-	registry.calls = registry.calls[1:]
+func ArgValue(expected interface{}) argumentCheck {
+	return createArgumentCheck(
+		"Value",
+		expected,
+		func(v interface{}) interface{} {
+			return v
+		})
+}
 
-	if err := verifyCall(registeredCall, name, args...); err != nil {
+func ArgPointer(expected interface{}) argumentCheck {
+	return createArgumentCheck(
+		"Pointer",
+		expected,
+		func(v interface{}) interface{} {
+			return reflect.ValueOf(v).Pointer()
+		})
+}
+
+func ArgType(expected interface{}) argumentCheck {
+	return createArgumentCheck(
+		"Type",
+		expected,
+		func(v interface{}) interface{} {
+			return reflect.TypeOf(v)
+		})
+}
+
+type Registry struct {
+	T           *testing.T
+	invocations []mockInvocation
+}
+
+func (registry *Registry) Writer(name string) io.Writer {
+	return mockWriter{
+		writeMethod: func(p []byte) (int, error) {
+			return len(p), nil
+		}}
+}
+
+func (registry *Registry) Register(invocation ...interface{}) {
+	registry.invocations = append(registry.invocations, invocation)
+}
+
+func (registry *Registry) NoMoreInvocations() *Registry {
+	if remaining := len(registry.invocations); remaining != 0 {
+		invocations := make([]string, 0, remaining)
+		for _, invocation := range registry.invocations {
+			invocations = append(invocations, fmt.Sprint(invocation))
+		}
 		registry.T.Errorf(
-			"mismatch: %v\nregistered call: %v",
-			err,
-			registeredCall)
+			"unexpected invocations:\n%v",
+			strings.Join(invocations, "\n"))
 	}
 
 	return registry
 }
 
-func verifyCall(registeredCall Call, name string, args ...ArgumentCheck) error {
+func (registry *Registry) Verify(name string, args ...argumentCheck) *Registry {
+	registered := registry.invocations[0]
+	registry.invocations = registry.invocations[1:]
 
-	if len(registeredCall)-1 != len(args) {
+	if err := verifyInvocation(registered, name, args...); err != nil {
+		registry.T.Errorf(
+			"mismatch: %v\nregistered invocation: %v",
+			err,
+			registered)
+	}
+
+	return registry
+}
+
+func verifyInvocation(
+	actualInvocation mockInvocation,
+	expectedName string,
+	expectedArgs ...argumentCheck) error {
+
+	if expectedName != actualInvocation[0] {
+		return fmt.Errorf("invocation name mismatch")
+	}
+
+	if len(actualInvocation)-1 != len(expectedArgs) {
 		return fmt.Errorf("argument list length mismatch")
 	}
 
-	for index, expectedArg := range args {
-		if err := expectedArg(registeredCall[1+index]); err != nil {
+	for index, expectedArg := range expectedArgs {
+		if err := expectedArg(actualInvocation[1+index]); err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func (registry *Registry) NoMoreCalls() *Registry {
-	if remainingCalls := len(registry.calls); remainingCalls != 0 {
-		registry.T.Errorf("registered %v unexpected calls", remainingCalls)
-	}
-
-	return registry
 }
