@@ -2,87 +2,23 @@ package mockutil
 
 import (
 	"fmt"
-	"io"
-	"reflect"
 	"strings"
 	"testing"
 )
 
-type mockInvocation []interface{}
-
-type mockWriter struct {
-	writeMethod func(p []byte) (int, error)
-}
-
-func (m mockWriter) Write(p []byte) (int, error) {
-	return m.writeMethod(p)
-}
-
-type argumentCheck func(interface{}) error
-
-func createArgumentCheck(
-	name string,
-	expected interface{},
-	transform func(interface{}) interface{}) argumentCheck {
-	return func(actual interface{}) error {
-		if transform(expected) == transform(actual) {
-			return nil
-		} else {
-			return fmt.Errorf(
-				"%s: expected = %v actual = %v",
-				name,
-				expected,
-				actual)
-		}
-	}
-}
-
-func Any() argumentCheck {
-	return createArgumentCheck(
-		"Any",
-		nil,
-		func(v interface{}) interface{} {
-			return nil
-		})
-}
-
-func ArgValue(expected interface{}) argumentCheck {
-	return createArgumentCheck(
-		"Value",
-		expected,
-		func(v interface{}) interface{} {
-			return v
-		})
-}
-
-func ArgPointer(expected interface{}) argumentCheck {
-	return createArgumentCheck(
-		"Pointer",
-		expected,
-		func(v interface{}) interface{} {
-			return reflect.ValueOf(v).Pointer()
-		})
-}
-
-func ArgType(expected interface{}) argumentCheck {
-	return createArgumentCheck(
-		"Type",
-		expected,
-		func(v interface{}) interface{} {
-			return reflect.TypeOf(v)
-		})
-}
-
 type Registry struct {
 	T           *testing.T
+	StdOut      mockWriter
+	StdErr      mockWriter
 	invocations []mockInvocation
 }
 
-func (registry *Registry) Writer(name string) io.Writer {
-	return mockWriter{
-		writeMethod: func(p []byte) (int, error) {
-			return len(p), nil
-		}}
+func NewRegistry(t *testing.T) Registry {
+	return Registry{
+		T:      t,
+		StdOut: mockWriter{},
+		StdErr: mockWriter{},
+	}
 }
 
 func (registry *Registry) Register(invocation ...interface{}) {
