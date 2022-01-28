@@ -31,7 +31,7 @@ func (registry *Registry) NoMoreInvocations() *Registry {
 		for _, invocation := range registry.invocations {
 			invocations = append(invocations, fmt.Sprint(invocation))
 		}
-		registry.T.Errorf(
+		registry.T.Fatalf(
 			"unexpected invocations:\n%v",
 			strings.Join(invocations, "\n"))
 	}
@@ -40,11 +40,18 @@ func (registry *Registry) NoMoreInvocations() *Registry {
 }
 
 func (registry *Registry) Verify(name string, args ...argumentCheck) *Registry {
+	if len(registry.invocations) == 0 {
+		registry.T.Fatalf(
+			"missing invocation: %s %v",
+			name,
+			args)
+	}
+
 	registered := registry.invocations[0]
 	registry.invocations = registry.invocations[1:]
 
 	if err := verifyInvocation(registered, name, args...); err != nil {
-		registry.T.Errorf(
+		registry.T.Fatalf(
 			"mismatch: %v\nregistered invocation: %v",
 			err,
 			registered)
