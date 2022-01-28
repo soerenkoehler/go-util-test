@@ -6,18 +6,20 @@ import (
 	"testing"
 )
 
+type mockInvocation []interface{}
+
 type Registry struct {
 	T           *testing.T
-	StdOut      mockWriter
-	StdErr      mockWriter
+	StdOut      strings.Builder
+	StdErr      strings.Builder
 	invocations []mockInvocation
 }
 
 func NewRegistry(t *testing.T) Registry {
 	return Registry{
 		T:      t,
-		StdOut: mockWriter{},
-		StdErr: mockWriter{},
+		StdOut: strings.Builder{},
+		StdErr: strings.Builder{},
 	}
 }
 
