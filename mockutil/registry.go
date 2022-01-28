@@ -10,16 +10,16 @@ type mockInvocation []interface{}
 
 type Registry struct {
 	T           *testing.T
-	StdOut      strings.Builder
-	StdErr      strings.Builder
+	StdOut      *strings.Builder
+	StdErr      *strings.Builder
 	invocations []mockInvocation
 }
 
 func NewRegistry(t *testing.T) Registry {
 	return Registry{
 		T:      t,
-		StdOut: strings.Builder{},
-		StdErr: strings.Builder{},
+		StdOut: &strings.Builder{},
+		StdErr: &strings.Builder{},
 	}
 }
 
