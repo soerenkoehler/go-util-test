@@ -1,4 +1,4 @@
-name: Build And Release Tool
+name: Build
 
 on:
   push
@@ -12,19 +12,16 @@ jobs:
       - name: Setup Go environment
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version: 1.17
 
       - name: Checkout
         uses: actions/checkout@v2
 
       - name: Setup Environment
         run: |
-          echo 'GITHUB_CONTEXT<<EOF' >>$GITHUB_ENV
-          echo '${{toJson(github)}}' >>$GITHUB_ENV
-          echo 'EOF' >>$GITHUB_ENV
           echo 'GOPROXY=direct' >>$GITHUB_ENV
 
       - name: Build
         run: |
-          go get github.com/soerenkoehler/simpson@main
-          go run github.com/soerenkoehler/simpson . --latest --skip-upload
+          go vet ./...
+          go test --cover ./...
