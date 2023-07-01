@@ -1,4 +1,4 @@
-package datautil_test
+package data_test
 
 import (
 	"crypto/sha256"
@@ -8,19 +8,19 @@ import (
 	"path"
 	"testing"
 
-	"github.com/soerenkoehler/go-testutils/datautil"
-	"github.com/soerenkoehler/go-testutils/testutil"
+	"github.com/soerenkoehler/go-util-test/data"
+	"github.com/soerenkoehler/go-util-test/test"
 )
 
 func TestXorShiftPanicsWithZeroSeed(t *testing.T) {
-	testutil.ShouldPanic(t, func() {
-		datautil.NewXorShift64Mul(0)
+	test.ShouldPanic(t, func() {
+		data.NewXorShift64Mul(0)
 	})
 }
 
 func TestSameSeedYieldsSameSequence(t *testing.T) {
-	r1 := datautil.NewXorShift64Mul(1)
-	r2 := datautil.NewXorShift64Mul(1)
+	r1 := data.NewXorShift64Mul(1)
+	r2 := data.NewXorShift64Mul(1)
 	for i := 0; i < 0x1000_0000; i++ {
 		if r1.UInt64() != r2.UInt64() {
 			t.Fatalf("Sequences differ at index %d", i)
@@ -60,7 +60,7 @@ func TestSampleRegressions(t *testing.T) {
 		{0x8000_0000_0000_0000, 0x10_0000, "a27a1b8ab09f4ff66992a45e05713c78d274b1263ce4d76e201d0c506008fa3c"}}
 
 	for i, sample := range samples {
-		rng := datautil.NewRng64ByteStream(datautil.NewXorShift64Mul(sample.seed))
+		rng := data.NewRng64ByteStream(data.NewXorShift64Mul(sample.seed))
 		hash := sha256.New()
 
 		io.CopyN(hash, rng, sample.size)
@@ -81,7 +81,7 @@ func TestRandomDataFile(t *testing.T) {
 	sampleSize := 0x4000_0000
 	fileName := path.Join(t.TempDir(), "rand.bin")
 
-	datautil.CreateRandomFile(fileName, int64(sampleSize), seed)
+	data.CreateRandomFile(fileName, int64(sampleSize), seed)
 
 	in, err := os.Open(fileName)
 	if err != nil {
@@ -98,7 +98,7 @@ func TestRandomDataFile(t *testing.T) {
 		t.Fatalf("expected %d bytes in file but got %d", sampleSize, len(buf))
 	}
 
-	cmp := datautil.NewRng64ByteStream(datautil.NewXorShift64Mul(seed))
+	cmp := data.NewRng64ByteStream(data.NewXorShift64Mul(seed))
 	for i := range buf {
 		if buf[i] != cmp.Byte() {
 			t.Fatalf("file differs on position %d", i)

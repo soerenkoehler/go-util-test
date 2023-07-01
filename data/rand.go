@@ -1,4 +1,4 @@
-package datautil
+package data
 
 type Rng64 interface {
 	UInt64() uint64

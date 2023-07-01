@@ -1,4 +1,4 @@
-package datautil
+package data
 
 import (
 	"fmt"

@@ -1,4 +1,4 @@
-package mockutil
+package mock
 
 import (
 	"fmt"
