@@ -1,12 +1,15 @@
 go-testutils
 ============
 
-mockutil
---------
+test
+----
+
+mock
+----
 
 A simple mocking library.
 
-datautil
---------
+data
+----
 
 Simple generators for test data.
