@@ -1,4 +1,4 @@
-name: Go-Util-Build
+name: run tests
 
 on:
   push
@@ -19,11 +19,9 @@ jobs:
 
       - name: Setup Environment
         run: |
-          echo 'GITHUB_CONTEXT<<EOF' >>$GITHUB_ENV
-          echo '${{toJson(github)}}' >>$GITHUB_ENV
-          echo 'EOF' >>$GITHUB_ENV
           echo 'GOPROXY=direct' >>$GITHUB_ENV
 
       - name: Build
         run: |
-          go run github.com/soerenkoehler/go-util-build@main 
+          go vet ./...
+          go test --cover ./...
