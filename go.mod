@@ -1,3 +1,3 @@
 module github.com/soerenkoehler/go-testutils
 
-go 1.17
+go 1.20
